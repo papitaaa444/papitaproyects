@@ -9,6 +9,7 @@
       --rosa:#FF69B4; --rosa-claro:#FFB6C1; --magenta:#DB7093; --bg:#FFF0F5;
       --oscuro:#0b132b; --azul:#00d4ff; --verde:#1DB954; --gris:#1a1a1a; --oro:#FFD700;
     }
+    * { box-sizing: border-box; }
     body { margin:0; font-family: Georgia, serif; background: var(--bg); color:#333; }
     .pantalla { display:none; padding:26px; text-align:center; min-height:100vh; }
     .btn { margin:10px; padding:12px 20px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
@@ -157,97 +158,48 @@ function mostrar(id){
   const input = document.querySelector(`#${id} input`); if (input) input.focus();
 }
 
-// Juego 1: rondas con contador estable y detección fluida
+// Juego 1: rondas con contador estable y transición correcta
 (function(){
-  function ronda(canvasId, timerId, emoji, nextStart){
-    const c = document.getElementById(canvasId), ctx = c.getContext("2d");
-    let heart = {x:300,y:140,emoji}, t = 5, interval;
-
-    function draw(){
-      ctx.clearRect(0,0,c.width,c.height);
-      ctx.font="52px Arial"; ctx.fillText(heart.emoji, heart.x, heart.y);
-    }
-    function moveRandom(){
-      heart.x = Math.random()*520+40;
-      heart.y = Math.random()*180+40;
-      draw();
-    }
-    c.addEventListener("mousemove", (e) => {
-      const rect = c.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
-      if(Math.hypot(x-heart.x, y-heart.y) < 45) moveRandom();
-    });
-
+  function ronda(canvasId, timerId, emoji, onFinish){
+    const c=document.getElementById(canvasId),ctx=c.getContext("2d");
+    let heart={x:300,y:140,emoji},t=5,interval;
+    function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.font="52px Arial";ctx.fillText(heart.emoji,heart.x,heart.y);}
+    function moveRandom(){heart.x=Math.random()*520+40;heart.y=Math.random()*180+40;draw();}
+    c.addEventListener("mousemove",(e)=>{const r=c.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;if(Math.hypot(x-heart.x,y-heart.y)<45)moveRandom();});
     function start(){
-      t = 5; draw();
-      document.getElementById(timerId).innerText = `⏳ ${t}s`;
+      t=5; draw(); document.getElementById(timerId).innerText=`⏳ ${t}s`;
       clearInterval(interval);
-      interval = setInterval(()=>{
-        t--;
-        document.getElementById(timerId).innerText = `⏳ ${t}s`;
-        if(t<=0){
-          clearInterval(interval);
-          if(canvasId==="canvasR1"){
-            document.getElementById("ronda1").style.display="none";
-            document.getElementById("ronda2").style.display="block";
-          } else if(canvasId==="canvasR2"){
-            document.getElementById("ronda2").style.display="none";
-            document.getElementById("ronda3").style.display="block";
-          }
-          nextStart();
-        }
+      interval=setInterval(()=>{
+        t--; document.getElementById(timerId).innerText=`⏳ ${t}s`;
+        if(t<=0){ clearInterval(interval); onFinish(); }
       },1000);
     }
     return { start };
   }
 
-  const r1 = ronda("canvasR1","timerR1","❤️", startR2);
-  const r2 = ronda("canvasR2","timerR2","💜", startR3);
-
-  // Ronda 3: atrapa 5 💗 con hitbox generosa y ritmo rápido
-  const c3 = document.getElementById("canvasCorazones"), ctx3 = c3.getContext("2d");
+  const c3=document.getElementById("canvasCorazones"),ctx3=c3.getContext("2d");
   let puntos=0, arr=[];
+  function drawR3(){ctx3.clearRect(0,0,c3.width,c3.height);ctx3.font="36px Arial";arr.forEach(c=>ctx3.fillText(c.t,c.x,c.y));}
+  function spawnR3(){ if(puntos>=5) return; const x=Math.random()*560+20,y=Math.random()*320+20; const tipos=["❤️","💜","💗","🌸","✨"]; const t=tipos[(Math.random()*tipos.length)|0]; arr.push({x,y,t}); drawR3(); setTimeout(spawnR3,450);}
+  c3.addEventListener("click",(e)=>{const r=c3.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;let closest=-1,best=9999;arr.forEach((c,i)=>{const d=Math.hypot(x-c.x,y-c.y);if(d<best){best=d;closest=i;}});if(closest!==-1&&best<28){if(arr[closest].t==="💗"){puntos++; document.getElementById("puntos").innerText=`Puntos: ${puntos}/5`; arr.splice(closest,1); drawR3(); if(puntos>=5) document.getElementById("btnNext1").style.display="inline-block";} else {arr.splice(closest,1); drawR3();}}});
 
-  function drawR3(){
-    ctx3.clearRect(0,0,c3.width,c3.height);
-    ctx3.font="36px Arial";
-    arr.forEach(c => ctx3.fillText(c.t, c.x, c.y));
-  }
-  function spawnR3(){
-    if(puntos>=5) return;
-    const x = Math.random()*560+20, y = Math.random()*320+20;
-    const tipos = ["❤️","💜","💗","🌸","✨"];
-    const t = tipos[(Math.random()*tipos.length)|0];
-    arr.push({x,y,t});
-    drawR3();
-    setTimeout(spawnR3, 450);
-  }
-  c3.addEventListener("click", (e)=>{
-    const rect = c3.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
-    let closest = -1, bestD = 9999;
-    arr.forEach((c,i)=>{
-      const d = Math.hypot(x-c.x, y-c.y);
-      if(d < bestD) { bestD = d; closest = i; }
-    });
-    if(closest !== -1 && bestD < 28){
-      if(arr[closest].t === "💗"){
-        puntos++;
-        document.getElementById("puntos").innerText = `Puntos: ${puntos}/5`;
-        arr.splice(closest,1); drawR3();
-        if(puntos>=5) document.getElementById("btnNext1").style.display="inline-block";
-      } else { arr.splice(closest,1); drawR3(); }
-    }
+  const r1 = ronda("canvasR1","timerR1","❤️", ()=>{
+    document.getElementById("ronda1").style.display="none";
+    document.getElementById("ronda2").style.display="block";
+    r2.start();
   });
-
-  function startR1(){ r1.start(); }
-  function startR2(){ r2.start(); }
-  function startR3(){ puntos=0; arr=[]; document.getElementById("btnNext1").style.display="none"; drawR3(); spawnR3(); }
+  const r2 = ronda("canvasR2","timerR2","💜", ()=>{
+    document.getElementById("ronda2").style.display="none";
+    document.getElementById("ronda3").style.display="block";
+    puntos=0; arr=[]; document.getElementById("btnNext1").style.display="none"; drawR3(); spawnR3();
+  });
 
   const obs = new MutationObserver(()=>{
     if(document.getElementById("juego1").style.display==="block"){
       document.getElementById("ronda1").style.display="block";
       document.getElementById("ronda2").style.display="none";
       document.getElementById("ronda3").style.display="none";
-      startR1();
+      r1.start();
     }
   });
   obs.observe(document.body,{attributes:true, subtree:true, attributeFilter:["style"]});
@@ -427,28 +379,41 @@ function mostrar(id){
   }); obs.observe(document.body,{attributes:true, subtree:true, attributeFilter:["style"]});
 })();
 
-// Juego 6: Jardín final — tulipanes bonitos con pétalos suaves y brillos
+// Juego 6: Jardín final — tulipanes estilizados
 (function(){
   const canvas = document.getElementById("canvasJardin");
   const ctx = canvas.getContext("2d");
   const paleta=["#FFB6C1","#DB7093","#FF69B4","#FF1493","#FFC0CB"];
+
   function drawTulip(x,y,scale=1){
     ctx.strokeStyle="#5FA66B"; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(x, y+20); ctx.lineTo(x, y+120*scale); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y+100*scale); ctx.stroke();
     ctx.fillStyle="#6FBF73";
-    ctx.beginPath(); ctx.ellipse(x-12, y+80, 16, 6, Math.PI/6, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(x+12, y+95, 16, 6, -Math.PI/6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x-12, y+60, 20, 8, Math.PI/6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+12, y+70, 20, 8, -Math.PI/6, 0, Math.PI*2); ctx.fill();
     const c = paleta[(Math.random()*paleta.length)|0];
     ctx.fillStyle = c;
-    ctx.beginPath(); ctx.ellipse(x, y, 16*scale, 22*scale, 0, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(x-14*scale, y+4*scale, 14*scale, 18*scale, -0.4, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(x+14*scale, y+4*scale, 14*scale, 18*scale, 0.4, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x-10*scale, y-2*scale); ctx.quadraticCurveTo(x, y-16*scale, x+10*scale, y-2*scale); ctx.lineTo(x, y+6*scale); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(x-10*scale, y-30*scale, x, y-50*scale);
+    ctx.quadraticCurveTo(x+10*scale, y-30*scale, x, y);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(x-25*scale, y-25*scale, x-10*scale, y-50*scale);
+    ctx.quadraticCurveTo(x-5*scale, y-25*scale, x, y);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(x+25*scale, y-25*scale, x+10*scale, y-50*scale);
+    ctx.quadraticCurveTo(x+5*scale, y-25*scale, x, y);
+    ctx.fill();
   }
+
   function escena(){
     ctx.clearRect(0,0,800,650);
     ctx.fillStyle="#FFF9FB"; ctx.fillRect(0,0,800,650);
-    for(let i=0;i<60;i++){
+    for(let i=0;i<40;i++){
       ctx.strokeStyle = "rgba(255,182,193,0.35)";
       ctx.beginPath();
       const lx = Math.random()*800; const ly = Math.random()*300;
@@ -458,31 +423,25 @@ function mostrar(id){
     }
     ctx.fillStyle="#DB7093"; ctx.font="30px Georgia"; ctx.fillText("Para mi lugar seguro...",280,90);
     ctx.fillStyle="#BC8F8F"; ctx.font="16px Arial"; ctx.fillText("Eres lo más bonito de mi vida.",300,130);
-    for(let i=0;i<28;i++){ drawTulip(Math.random()*700+50, Math.random()*140+420, 1+Math.random()*0.2); }
+    for(let i=0;i<25;i++){ drawTulip(Math.random()*700+50, Math.random()*140+420, 1+Math.random()*0.3); }
   }
+
   const petals=[];
-  function spawnPetal(){
-    const x = Math.random()*800, size = 12+Math.random()*10;
-    petals.push({x, y:-20, size, vy:1.2+Math.random()*1.2, vx:(Math.random()*0.6-0.3)});
-  }
+  function spawnPetal(){ const x = Math.random()*800, size = 12+Math.random()*10; petals.push({x, y:-20, size, vy:1.2+Math.random()*1.2, vx:(Math.random()*0.6-0.3)}); }
   function drawPetals(){
-    petals.forEach(p=>{
-      ctx.font = `${p.size}px Arial`;
-      ctx.fillText("🌸", p.x, p.y);
-      p.y += p.vy; p.x += p.vx;
-    });
+    petals.forEach(p=>{ ctx.font = `${p.size}px Arial`; ctx.fillText("🌸", p.x, p.y); p.y += p.vy; p.x += p.vx; });
     for(let i=petals.length-1;i>=0;i--) if(petals[i].y>660) petals.splice(i,1);
   }
-  function loop(){
-    escena(); drawPetals(); requestAnimationFrame(loop);
-  }
+  function loop(){ escena(); drawPetals(); requestAnimationFrame(loop); }
+
   const obs = new MutationObserver(()=>{
     if(document.getElementById("juego6").style.display==="block"){
       petals.length=0; for(let i=0;i<20;i++) spawnPetal();
       if(!window._petalInterval) window._petalInterval = setInterval(spawnPetal, 500);
       loop();
     }
-  }); obs.observe(document.body,{attributes:true, subtree:true, attributeFilter:["style"]});
+  });
+  obs.observe(document.body,{attributes:true, subtree:true, attributeFilter:["style"]});
 })();
 
 // Juego 7: Trivia
@@ -561,7 +520,7 @@ function mostrar(id){
   obs.observe(document.body,{attributes:true, subtree:true, attributeFilter:["style"]});
 })();
 
-// Juego 10: Fuegos artificiales mejorados
+// Juego 10: Fuegos artificiales
 (function(){
   const canvas = document.getElementById("canvasFuegos");
   const ctx = canvas.getContext("2d");
@@ -636,6 +595,7 @@ function mostrar(id){
 </script>
 </body>
 </html>
+
 
 
 
