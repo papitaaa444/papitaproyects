@@ -39,21 +39,19 @@
   <button class="btn btn-rosa" onclick="mostrar('juego1')">Comenzar Viaje ✨</button>
 </section>
 
-<!-- Juego 1: Rondas -->
 <section id="juego1" class="pantalla">
   <h2 style="color:#CD5C5C">💖 Primer Reto: Afecto</h2>
+  <p style="color:#888;">Dale a “Siguiente” cuando te rindas ✨</p>
 
   <div id="ronda1">
     <h3>Ronda 1: Un besito ❤️</h3>
     <canvas id="canvasR1" width="600" height="260"></canvas>
-    <p id="timerR1">⏳ 5s</p>
     <button class="btn btn-rosa" onclick="pasarRonda(1)">Siguiente ➡️</button>
   </div>
 
   <div id="ronda2" style="display:none;">
     <h3>Ronda 2: Un abrazo 💜</h3>
     <canvas id="canvasR2" width="600" height="260"></canvas>
-    <p id="timerR2">⏳ 5s</p>
     <button class="btn btn-rosa" onclick="pasarRonda(2)">Siguiente ➡️</button>
   </div>
 
@@ -67,6 +65,19 @@
     </div>
   </div>
 </section>
+
+<script>
+function pasarRonda(n){
+  if(n===1){
+    document.getElementById("ronda1").style.display="none";
+    document.getElementById("ronda2").style.display="block";
+  }
+  if(n===2){
+    document.getElementById("ronda2").style.display="none";
+    document.getElementById("ronda3").style.display="block";
+  }
+}
+</script>
 
 <!-- Juego 2: Colores -->
 <section id="juego2" class="pantalla">
@@ -617,6 +628,7 @@ obsJ1.observe(document.body,{attributes:true, subtree:true, attributeFilter:["st
 </script>
 </body>
 </html>
+
 
 
 
