@@ -16,7 +16,7 @@
         .btn:active { transform: scale(0.9); }
         .btn-magenta { background: var(--magenta); }
         
-        canvas { background: white; border-radius: 20px; border: 2px solid #ffc2d1; width: 100%; max-width: 320px; display: block; margin: 0 auto; }
+        canvas { background: white; border-radius: 20px; border: 2px solid #ffc2d1; width: 100%; max-width: 320px; display: block; margin: 0 auto; cursor: crosshair; }
         .dark { background: var(--noche) !important; color: white !important; }
         
         .playlist { text-align: left; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px; font-size: 14px; }
@@ -178,26 +178,80 @@
         el.style.display='block';
     }
 
+    // --- FUNCIÓN PARA COORDENADAS (ARREGLADA PARA MOUSE Y TOUCH) ---
     function getP(e, c) {
         const r = c.getBoundingClientRect();
-        const t = e.touches ? e.touches[0] : e;
-        return { x: (t.clientX - r.left) * (c.width / r.width), y: (t.clientY - r.top) * (c.height / r.height) };
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { 
+            x: (clientX - r.left) * (c.width / r.width), 
+            y: (clientY - r.top) * (c.height / r.height) 
+        };
     }
 
-    // --- DIBUJO Y RELLENO ---
-    const cx1 = document.getElementById("c1").getContext("2d");
-    let d=false;
-    document.getElementById("c1").addEventListener("touchstart", (e)=>{ e.preventDefault(); d=true; cx1.beginPath(); const p=getP(e,cx1); cx1.moveTo(p.x,p.y); });
-    document.getElementById("c1").addEventListener("touchmove", (e)=>{ if(!d) return; const p=getP(e,cx1); cx1.lineTo(p.x,p.y); cx1.strokeStyle="#ff85a2"; cx1.lineWidth=4; cx1.stroke(); });
-    
-    const cx2 = document.getElementById("c2").getContext("2d");
-    cx2.fillStyle="#eee"; cx2.font="300px Arial"; cx2.textAlign="center"; cx2.textBaseline="middle"; cx2.fillText("❤", 160, 180);
-    document.getElementById("c2").addEventListener("touchmove", (e)=>{ e.preventDefault(); const p=getP(e,cx2); cx2.globalCompositeOperation="source-atop"; cx2.fillStyle="#ff4d6d"; cx2.beginPath(); cx2.arc(p.x,p.y,30,0,Math.PI*2); cx2.fill(); });
+    // --- DIBUJO LIBRE (CANVAS 1) ---
+    const can1 = document.getElementById("c1");
+    const cx1 = can1.getContext("2d");
+    let pintando = false;
 
-    // --- CORAZONES ---
+    function startDraw(e) {
+        e.preventDefault();
+        pintando = true;
+        const p = getP(e, can1);
+        cx1.beginPath();
+        cx1.moveTo(p.x, p.y);
+    }
+
+    function moveDraw(e) {
+        if (!pintando) return;
+        e.preventDefault();
+        const p = getP(e, can1);
+        cx1.lineTo(p.x, p.y);
+        cx1.strokeStyle = "#ff85a2";
+        cx1.lineWidth = 4;
+        cx1.lineCap = "round";
+        cx1.stroke();
+    }
+
+    function stopDraw() { pintando = false; }
+
+    can1.addEventListener("mousedown", startDraw);
+    can1.addEventListener("mousemove", moveDraw);
+    window.addEventListener("mouseup", stopDraw);
+    can1.addEventListener("touchstart", startDraw);
+    can1.addEventListener("touchmove", moveDraw);
+    can1.addEventListener("touchend", stopDraw);
+
+    // --- RELLENO DE CORAZÓN (CANVAS 2) ---
+    const can2 = document.getElementById("c2");
+    const cx2 = can2.getContext("2d");
+    
+    function initHeart() {
+        cx2.fillStyle="#eee"; cx2.font="300px Arial"; cx2.textAlign="center"; cx2.textBaseline="middle"; 
+        cx2.fillText("❤", 160, 180);
+    }
+    initHeart();
+
+    function fillHeart(e) {
+        // Solo pinta si hay touch o si el botón del mouse está presionado
+        if (e.type === "mousemove" && e.buttons !== 1) return;
+        e.preventDefault();
+        const p = getP(e, can2);
+        cx2.globalCompositeOperation = "source-atop";
+        cx2.fillStyle = "#ff4d6d";
+        cx2.beginPath();
+        cx2.arc(p.x, p.y, 30, 0, Math.PI * 2);
+        cx2.fill();
+    }
+
+    can2.addEventListener("mousemove", fillHeart);
+    can2.addEventListener("touchmove", fillHeart);
+
+    // --- CORAZONES (CANVAS 3) ---
     let pts=0, lC=[];
     function startCorazones(){
         const cx3 = document.getElementById("c3").getContext("2d");
+        const can3 = document.getElementById("c3");
         function loop(){
             cx3.clearRect(0,0,320,350);
             if(Math.random()<0.05) lC.push({x:Math.random()*280+20, y:-20, c:Math.random()>0.3?"#ff85a2":"#4da3ff"});
@@ -207,10 +261,19 @@
             });
             if(pts<10) requestAnimationFrame(loop); else mostrar('p3');
         }
-        document.getElementById("c3").addEventListener("touchstart", (e)=>{
-            const p=getP(e,document.getElementById("c3"));
-            lC.forEach((c,i)=>{ if(Math.hypot(p.x-c.x, p.y-c.y+15)<40){ if(c.c==="#ff85a2") pts++; else pts=Math.max(0,pts-2); lC.splice(i,1); document.getElementById("pts").innerText=`Puntos: ${pts}/10`; }});
-        });
+        
+        const catchHeart = (e) => {
+            const p = getP(e, can3);
+            lC.forEach((c,i)=>{ 
+                if(Math.hypot(p.x-c.x, p.y-c.y+15)<40){ 
+                    if(c.c==="#ff85a2") pts++; else pts=Math.max(0,pts-2); 
+                    lC.splice(i,1); 
+                    document.getElementById("pts").innerText=`Puntos: ${pts}/10`; 
+                }
+            });
+        };
+        can3.addEventListener("mousedown", catchHeart);
+        can3.addEventListener("touchstart", catchHeart);
         loop();
     }
 
@@ -223,11 +286,16 @@
             cxl.fillRect(0,60,240,20); cxl.fillRect(80,140,240,20); cxl.fillRect(0,220,240,20);
             cxl.font="25px Arial"; cxl.fillText("❤️", pl.x-12, pl.y+10); cxl.fillText("🌟", 280, 320);
         }
-        cl.addEventListener("touchmove",(e)=>{
-            e.preventDefault(); const p=getP(e,cl); const d=cxl.getImageData(p.x,p.y,1,1).data;
+        const moveLab = (e) => {
+            if (e.type === "mousemove" && e.buttons !== 1) return;
+            e.preventDefault(); 
+            const p=getP(e,cl); 
+            const d=cxl.getImageData(p.x,p.y,1,1).data;
             if(d[0]===255 && d[1]===133) pl={x:25,y:25}; else pl=p;
             if(pl.x>260 && pl.y>300) mostrar('p4'); draw();
-        });
+        };
+        cl.addEventListener("mousemove", moveLab);
+        cl.addEventListener("touchmove", moveLab);
         draw();
     }
 
@@ -235,7 +303,9 @@
     function initCielo(){
         const cc=document.getElementById("cCielo"), cxc=cc.getContext("2d");
         let en=0, ps={x:160,y:300}, obs=[];
-        cc.addEventListener("touchmove",(e)=>{e.preventDefault(); ps=getP(e,cc);});
+        const moveCielo = (e) => { e.preventDefault(); ps=getP(e,cc); };
+        cc.addEventListener("mousemove", moveCielo);
+        cc.addEventListener("touchmove", moveCielo);
         function loop(){
             cxc.clearRect(0,0,320,350); cxc.font="30px Arial"; cxc.fillText("❤️", ps.x-15, ps.y);
             if(Math.random()<0.1) obs.push({x:Math.random()*300, y:-30});
@@ -273,7 +343,8 @@
     function initFue(){
         const ctx = document.getElementById("cFue").getContext("2d");
         let p = [];
-        setInterval(()=>{
+        let timer = setInterval(()=>{
+            if(document.getElementById('p8').style.display!=='block') { clearInterval(timer); return; }
             const col = `hsl(${Math.random()*360},100%,70%)`;
             const x = Math.random()*320, y = Math.random()*100;
             for(let i=0;i<40;i++) p.push({x,y,vx:(Math.random()-0.5)*10,vy:(Math.random()-0.5)*10,c:col,a:1});
@@ -285,7 +356,7 @@
                 ctx.globalAlpha=m.a; ctx.fillStyle=m.c; ctx.fillRect(m.x,m.y,3,3);
                 if(m.a<=0) p.splice(i,1);
             });
-            requestAnimationFrame(loop);
+            if(document.getElementById('p8').style.display==='block') requestAnimationFrame(loop);
         }
         loop();
     }
