@@ -191,54 +191,64 @@ canvaDibujo.addEventListener("touchstart", (e) => { e.preventDefault(); dibujand
 canvaDibujo.addEventListener("touchmove", (e) => { e.preventDefault(); if(!dibujando) return; const p = getPos(e, canvaDibujo); ctxDibujo.lineTo(p.x, p.y); ctxDibujo.stroke(); });
 canvaDibujo.addEventListener("touchend", () => dibujando = false);
 
-// --- RONDA 2: RELLENAR CORAZÓN ---
+// --- RONDA 2: RELLENAR CORAZÓN (CORREGIDO) ---
 const canvaFill = document.getElementById("canvasFill"), ctxFill = canvaFill.getContext("2d");
-let pixelesTotales = 0, pixelesPintados = 0;
-
-function drawHeartShape(ctx, x, y, w, h) {
-  ctx.beginPath();
-  ctx.moveTo(x, y + h / 4);
-  ctx.quadraticCurveTo(x, y, x + w / 4, y);
-  ctx.font = "300px Arial"; // Truco para obtener la forma rápida
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("❤", x + w/2, y + h/2);
-}
+let pixelesCorazon = 0;
 
 function iniciarRonda2() {
-  ctxFill.fillStyle = "#eee";
+  // Limpiar y preparar
+  ctxFill.clearRect(0,0,600,400);
+  ctxFill.fillStyle = "#e0e0e0"; // Gris claro para el fondo del corazón
   ctxFill.font = "400px Arial";
   ctxFill.textAlign = "center";
   ctxFill.textBaseline = "middle";
-  ctxFill.fillText("❤", 300, 200);
+  ctxFill.fillText("❤", 300, 220);
   
-  // Contar cuántos píxeles tiene el corazón gris para calcular el %
+  // Contar exactamente cuántos píxeles ocupa el corazón gris
   const imgData = ctxFill.getImageData(0,0,600,400);
-  for(let i=0; i<imgData.data.length; i+=4) if(imgData.data[i] < 255) pixelesTotales++;
+  pixelesCorazon = 0;
+  for(let i=0; i<imgData.data.length; i+=4) {
+    if(imgData.data[i] < 255) pixelesCorazon++; 
+  }
 }
 
 function paint(e) {
   const p = getPos(e, canvaFill);
+  
+  // Solo permite pintar "dentro" del corazón gris
   ctxFill.globalCompositeOperation = "source-atop";
   ctxFill.fillStyle = "#FF69B4";
   ctxFill.beginPath();
-  ctxFill.arc(p.x, p.y, 25, 0, Math.PI*2);
+  ctxFill.arc(p.x, p.y, 35, 0, Math.PI*2); // Pincel más grande
   ctxFill.fill();
   
-  // Calcular progreso (cada 10 frames para no saturar)
+  // Calcular progreso real
   const imgData = ctxFill.getImageData(0,0,600,400);
-  let pintados = 0;
+  let pintadosRosa = 0;
   for(let i=0; i<imgData.data.length; i+=4) {
-    if(imgData.data[i] === 255 && imgData.data[i+1] === 105) pintados++;
+    // Si el píxel es Rosa (R:255, G:105, B:180)
+    if(imgData.data[i] === 255 && imgData.data[i+1] === 105) {
+      pintadosRosa++;
+    }
   }
-  let porc = Math.min(100, Math.floor((pintados/pixelesTotales)*100));
+  
+  // El porcentaje ahora es sobre el área del corazón, no del canvas
+  let porc = Math.min(100, Math.floor((pintadosRosa / pixelesCorazon) * 100));
+  
+  // Ajuste de sensibilidad: al 75% ya se ve bastante lleno y damos por bueno
   document.getElementById("progresoTexto").innerText = porc + "% lleno";
-  if(porc > 85) document.getElementById("btnNextRonda2").style.display = "inline-block";
+  if(porc >= 75) {
+    document.getElementById("progresoTexto").innerText = "¡100% LLENO DE AMOR! ❤️";
+    document.getElementById("btnNextRonda2").style.display = "inline-block";
+  }
 }
 
-canvaFill.addEventListener("mousemove", (e) => { if(e.buttons === 1) paint(e); });
-canvaFill.addEventListener("touchmove", (e) => { e.preventDefault(); paint(e); });
+canvaFill.addEventListener("mousedown", (e) => { canvaFill._isDrawing = true; paint(e); });
+canvaFill.addEventListener("mousemove", (e) => { if(canvaFill._isDrawing) paint(e); });
+window.addEventListener("mouseup", () => { canvaFill._isDrawing = false; });
 
+canvaFill.addEventListener("touchstart", (e) => { e.preventDefault(); paint(e); });
+canvaFill.addEventListener("touchmove", (e) => { e.preventDefault(); paint(e); });
 // --- REUTILIZACIÓN DE LÓGICA ORIGINAL PARA RONDA 3 Y DEMÁS ---
 // (He mantenido tu lógica de la Ronda 3, Colores, El Principito, etc., intacta)
 
@@ -355,3 +365,4 @@ obsJ1.observe(document.body,{attributes:true, subtree:true, attributeFilter:["st
 </script>
 </body>
 </html>
+
