@@ -8,7 +8,7 @@
         :root {
             --rosa: #ff85a2; --rosa-fuerte: #ff4d6d; --magenta: #c9184a;
             --bg: linear-gradient(-45deg, #fff0f5, #ffe5ec, #ffc2d1, #ffb3c1);
-            --glass: rgba(255, 255, 255, 0.85);
+            --glass: rgba(255, 255, 255, 0.9);
         }
 
         * { box-sizing: border-box; touch-action: none; -webkit-tap-highlight-color: transparent; }
@@ -24,10 +24,10 @@
 
         .pantalla {
             display: none; padding: 15px; text-align: center;
-            height: 100vh; overflow-y: auto; animation: fadeIn 0.6s ease;
+            height: 100vh; overflow-y: auto; animation: fadeIn 0.5s ease;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card {
             background: var(--glass); backdrop-filter: blur(10px);
@@ -37,11 +37,13 @@
         }
 
         .btn {
-            margin: 8px; padding: 12px 20px; border: none; border-radius: 50px;
+            margin: 8px; padding: 12px 25px; border: none; border-radius: 50px;
             font-weight: bold; cursor: pointer; font-size: 15px;
             background: var(--rosa); color: white; transition: 0.3s;
             box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
         }
+
+        .btn-next { background: var(--magenta); margin-top: 15px; }
 
         canvas {
             background: white; border-radius: 20px;
@@ -50,45 +52,44 @@
         }
 
         .dark-section { background: #000014 !important; color: white !important; }
-        .dark-section .card { background: rgba(255,255,255,0.05); color: white; border-color: #333; }
+        .dark-section .card { background: rgba(255,255,255,0.1); color: white; border-color: #444; }
         
         .song-list { text-align: left; font-size: 0.9em; color: #ffb6c1; list-style: none; padding: 0; }
-        .song-list li { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .song-list li { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        input { padding: 12px; border-radius: 15px; border: 1px solid #ffc2d1; width: 80%; text-align: center; font-size: 16px; }
+        input { padding: 12px; border-radius: 15px; border: 1px solid #ffc2d1; width: 85%; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <section id="bienvenida" class="pantalla" style="display:block;">
-    <div class="card" style="margin-top: 25vh;">
+    <div class="card" style="margin-top: 20vh;">
         <h1 style="color:var(--magenta)">¡Hola, Mi Amor! ✨</h1>
-        <p>He preparado algo muy especial para ti.<br>¿Lista para la aventura?</p>
-        <button class="btn" onclick="mostrar('juego1')">¡Empezar! 🌸</button>
+        <p>He preparado una aventura mágica para recordarte lo especial que eres.</p>
+        <button class="btn" onclick="mostrar('juego1')">¡Empezar Aventura! 🌸</button>
     </div>
 </section>
 
 <section id="juego1" class="pantalla">
     <div class="card">
         <div id="ronda1">
-            <h2>Paso 1: Dibuja algo lindo 🎨</h2>
-            <p>Usa tu dedo para dibujar aquí</p>
+            <h2>Dibuja algo lindo 🎨</h2>
             <canvas id="canvasDibujo" width="350" height="420"></canvas>
-            <br><button class="btn" onclick="pasarRonda(1)">Listo ➡️</button>
+            <button class="btn btn-next" onclick="pasarRonda(1)">Listo, Siguiente ➡️</button>
         </div>
         
         <div id="ronda2" style="display:none;">
-            <h2>Paso 2: Mi corazón ❤️</h2>
-            <p id="progresoTexto">Píntalo de rosa con tu dedo</p>
+            <h2>Llena mi corazón ❤️</h2>
+            <p>Píntalo con tu dedo o avanza cuando quieras</p>
             <canvas id="canvasFill" width="350" height="420"></canvas>
-            <br><button id="btnNextRonda2" class="btn" style="display:none;" onclick="pasarRonda(2)">¡Siguiente! ➡️</button>
+            <button class="btn btn-next" onclick="pasarRonda(2)">¡Ya quedó lindo! ➡️</button>
         </div>
 
         <div id="ronda3" style="display:none;">
-            <h2>Paso 3: Atrapa el amor 💗</h2>
+            <h2>Atrapa el amor 💗</h2>
             <p id="puntos">Atrapados: 0/5</p>
             <canvas id="canvasCorazones" width="350" height="420"></canvas>
-            <br><button id="btnNext1" class="btn" style="display:none;" onclick="mostrar('juego2')">¡Continuar! ✨</button>
+            <button class="btn btn-next" onclick="mostrar('juego2')">Continuar ✨</button>
         </div>
     </div>
 </section>
@@ -96,15 +97,14 @@
 <section id="juego2" class="pantalla">
     <div class="card">
         <h2>🎨 El Color de hoy</h2>
-        <p>¿Qué color combina más con nosotros?</p>
         <div id="opcionesColores">
-            <button class="btn" style="background:#ADD8E6" onclick="alert('Bonito, pero no...')">Azul</button>
+            <button class="btn" style="background:#ADD8E6" onclick="alert('Cerca...')">Azul</button>
+            <button class="btn" style="background:var(--rosa)" onclick="ganarColor()">¡Rosa! ✨</button>
             <button class="btn" style="background:#C2F0C2" onclick="alert('Nop...')">Verde</button>
-            <button class="btn" style="background:#FFFFE0; color:black" onclick="falloColor()">Amarillo</button>
         </div>
         <div id="secretoColor" style="display:none;">
-            <p>¡Exacto! El Rosa, como todo este detalle ✨</p>
-            <button class="btn" onclick="mostrar('juego3')">Avanzar</button>
+            <p>¡Exacto! El Rosa es nuestro color ✨</p>
+            <button class="btn btn-next" onclick="mostrar('juego3')">Avanzar</button>
         </div>
     </div>
 </section>
@@ -112,46 +112,43 @@
 <section id="juego3" class="pantalla dark-section">
     <div class="card">
         <h2>🌹 Una frase...</h2>
-        <p>"Solo se ve bien con el corazón, lo esencial es invisible a..."</p>
+        <p>"Lo esencial es invisible a..."</p>
         <button class="btn" onclick="mostrar('juego4')">Los ojos ❤️</button>
-        <button class="btn" onclick="alert('Piénsalo bien...')">La distancia</button>
+        <button class="btn" onclick="alert('¡Casi!')">La razón</button>
     </div>
 </section>
 
 <section id="juego4" class="pantalla dark-section">
     <div class="card">
         <h2>✨ Protege nuestro amor</h2>
-        <p>Mueve el ❤️ para esquivar las nubes</p>
-        <p id="energia">Carga de Amor: 0%</p>
+        <p id="energia">Carga: 0%</p>
         <canvas id="canvasEsquiva" width="350" height="420"></canvas>
+        <button class="btn btn-next" onclick="mostrar('juego5')">Saltar Minijuego ➡️</button>
     </div>
 </section>
 
 <section id="juego5" class="pantalla dark-section">
     <div class="card">
         <h2>🎤 Completa la Letra</h2>
-        <p style="color:var(--rosa); font-weight:bold;">Die With A Smile</p>
+        <p style="color:var(--rosa)">Die With A Smile</p>
         <p>"If the world was ending, I'd wanna be..."</p>
         <button class="btn" onclick="mostrar('juego6')">Next to you 👩‍❤️‍👨</button>
-        <button class="btn" onclick="alert('¡Nooo!')">Far away</button>
     </div>
 </section>
 
 <section id="juego6" class="pantalla">
     <div class="card">
         <h2>🕵️ ¿Quién es?</h2>
-        <p>Adivina el artista por los emojis:</p>
-        <p style="font-size: 50px;">☀️ 🌊 🕶️ 🐰</p>
-        <input type="text" id="inputArtista" placeholder="Nombre del artista...">
-        <br><br>
-        <button class="btn" onclick="checkArtista()">Comprobar</button>
+        <p style="font-size: 40px;">☀️ 🌊 🕶️ 🐰</p>
+        <input type="text" id="inputArtista" placeholder="Su nombre es...">
+        <button class="btn btn-next" onclick="checkArtista()">Comprobar</button>
     </div>
 </section>
 
 <section id="juego7" class="pantalla dark-section">
     <div class="card">
-        <h2 style="color:var(--rosa)">¡ERES LA MEJOR! 🎉</h2>
-        <p>Nuestra Playlist Especial:</p>
+        <h2 style="color:var(--rosa)">¡LO LOGRASTE! 🎉</h2>
+        <p>Estas canciones me recuerdan a ti:</p>
         <ul class="song-list">
             <li>🎵 The Boy Is Mine - Ariana Grande</li>
             <li>🎵 Lo Que Siento - Cuco</li>
@@ -159,26 +156,23 @@
             <li>🎵 Obsesionado - Farruko</li>
             <li>🎵 Die With A Smile - Lady Gaga</li>
         </ul>
-        <canvas id="canvasFuegos" width="350" height="250" style="background:transparent; border:none;"></canvas>
-        <button class="btn" onclick="mostrar('cartaFinal')">Ver mi mensaje final 💌</button>
+        <canvas id="canvasFuegos" width="350" height="200" style="background:transparent; border:none;"></canvas>
+        <button class="btn btn-next" onclick="mostrar('cartaFinal')">Leer mi Carta 💌</button>
     </div>
 </section>
 
 <section id="cartaFinal" class="pantalla">
     <div class="card" style="background:#fffaf0; text-align: left; padding: 25px;">
-        <h2 style="text-align:center; color:var(--magenta)">Mi Carta para Ti ❤️</h2>
-        <div style="line-height: 1.6;">
-            <p>Quizá te demuestro muy poco y quizá esto no sea nada, pero para mí lo es todo.</p>
-            <p>Me haces feliz de una forma que no puedo explicar. Gracias por aguantarme, por estar ahí y por ser tú.</p>
-            <p>Eres mi persona favorita en todo el universo y siempre quiero que lo sepas.</p>
-            <p style="text-align: right; font-weight: bold; color: var(--magenta); margin-top: 20px;">Te quiero muchísimo. 🌸</p>
-        </div>
-        <button class="btn" style="width:100%" onclick="location.reload()">Volver a empezar 🤗</button>
+        <h2 style="text-align:center; color:var(--magenta)">Para Ti ❤️</h2>
+        <p>Quizá te demuestro muy poco y quizá esto no sea nada, pero para mí lo es todo.</p>
+        <p>Me haces feliz de una forma que no puedo explicar. Gracias por aguantarme, por estar ahí y por ser tú.</p>
+        <p>Eres mi persona favorita en todo el universo.</p>
+        <p style="text-align: right; font-weight: bold; color: var(--magenta);">Te quiero muchísimo. <br> Siempre tuya. 🌸</p>
+        <button class="btn" style="width:100%" onclick="location.reload()">Reiniciar 🤗</button>
     </div>
 </section>
 
 <script>
-    // --- LÓGICA DE NAVEGACIÓN ---
     function mostrar(id){
         document.querySelectorAll('.pantalla').forEach(p => p.style.display = 'none');
         document.getElementById(id).style.display = 'block';
@@ -195,16 +189,15 @@
         };
     }
 
-    // --- RONDA 1: DIBUJO ---
+    // DIBUJO
     const canvaD = document.getElementById("canvasDibujo"), ctxD = canvaD.getContext("2d");
     let dib = false;
     canvaD.addEventListener("touchstart", (e)=>{ e.preventDefault(); dib=true; const p=getPos(e,canvaD); ctxD.beginPath(); ctxD.moveTo(p.x,p.y); });
     canvaD.addEventListener("touchmove", (e)=>{ e.preventDefault(); if(!dib)return; const p=getPos(e,canvaD); ctxD.lineTo(p.x,p.y); ctxD.strokeStyle="#ff85a2"; ctxD.lineWidth=5; ctxD.stroke(); });
     canvaD.addEventListener("touchend", ()=>dib=false);
 
-    // --- RONDA 2: RELLENO (ESTA ES LA QUE NO FALLA) ---
+    // RELLENO
     const canvaF = document.getElementById("canvasFill"), ctxF = canvaF.getContext("2d");
-    let movs = 0;
     function iniciarRonda2() {
         ctxF.clearRect(0,0,350,420);
         ctxF.fillStyle="#f0f0f0"; ctxF.font="380px Arial"; ctxF.textAlign="center"; ctxF.textBaseline="middle";
@@ -213,23 +206,22 @@
     canvaF.addEventListener("touchmove", (e)=>{
         e.preventDefault(); const p=getPos(e,canvaF);
         ctxF.globalCompositeOperation="source-atop"; ctxF.fillStyle="#ff4d6d";
-        ctxF.beginPath(); ctxF.arc(p.x, p.y, 45, 0, Math.PI*2); ctxF.fill();
-        movs++; if(movs > 50) { document.getElementById("btnNextRonda2").style.display="inline-block"; document.getElementById("progresoTexto").innerText="¡Está perfecto! ❤️"; }
+        ctxF.beginPath(); ctxF.arc(p.x, p.y, 40, 0, Math.PI*2); ctxF.fill();
     });
 
-    // --- RONDA 3: ATRAPAR ---
+    // CORAZONES
     const canvaC = document.getElementById("canvasCorazones"), ctxC = canvaC.getContext("2d");
     let pts=0, listaC=[];
     function spawnC() {
-        if(pts>=5 || document.getElementById("ronda3").style.display==='none') return;
+        if(document.getElementById("ronda3").style.display==='none') return;
         listaC.push({x:Math.random()*280+30, y:Math.random()*350+30});
         ctxC.clearRect(0,0,350,420); ctxC.font="40px Arial";
         listaC.forEach(c=>ctxC.fillText("💗", c.x, c.y));
-        setTimeout(spawnC, 800);
+        setTimeout(spawnC, 1000);
     }
     canvaC.addEventListener("touchstart", (e)=>{
         const p=getPos(e,canvaC);
-        listaC.forEach((c,i)=>{ if(Math.hypot(p.x-c.x, p.y-(c.y-25))<45){ pts++; listaC.splice(i,1); document.getElementById("puntos").innerText=`Atrapados: ${pts}/5`; if(pts>=5)document.getElementById("btnNext1").style.display="block"; } });
+        listaC.forEach((c,i)=>{ if(Math.hypot(p.x-c.x, p.y-(c.y-25))<50){ pts++; listaC.splice(i,1); document.getElementById("puntos").innerText=`Atrapados: ${pts}/5`; } });
     });
 
     function pasarRonda(n) {
@@ -237,40 +229,39 @@
         if(n===2) { document.getElementById("ronda2").style.display="none"; document.getElementById("ronda3").style.display="block"; spawnC(); }
     }
 
-    // --- ESQUIVA ---
+    // ESQUIVA
     function iniciarEsquiva() {
         const cv=document.getElementById("canvasEsquiva"), cx=cv.getContext("2d");
         let en=0, player={x:175,y:350}, clouds=[];
         cv.addEventListener("touchmove", (e)=>{ player=getPos(e,cv); });
         function loop(){
             if(en>=100){ mostrar('juego5'); return; }
-            cx.clearRect(0,0,350,420); cx.font="30px Arial"; cx.fillText("❤️", player.x-15, player.y);
-            if(Math.random()<0.06) clouds.push({x:Math.random()*330, y:0});
-            clouds.forEach((c,i)=>{ c.y+=5; cx.fillText("☁️", c.x, c.y); if(Math.hypot(player.x-c.x, player.y-c.y)<35) en=Math.max(0, en-10); });
-            en+=0.35; document.getElementById("energia").innerText=`Carga de Amor: ${Math.floor(en)}%`;
+            cx.clearRect(0,0,350,420); cx.fillText("❤️", player.x-15, player.y);
+            if(Math.random()<0.05) clouds.push({x:Math.random()*330, y:0});
+            clouds.forEach((c,i)=>{ c.y+=5; cx.fillText("☁️", c.x, c.y); if(Math.hypot(player.x-c.x, player.y-c.y)<35) en=Math.max(0, en-5); });
+            en+=0.3; document.getElementById("energia").innerText=`Carga: ${Math.floor(en)}%`;
             if(document.getElementById('juego4').style.display === 'block') requestAnimationFrame(loop);
         }
         loop();
     }
 
-    // --- FUEGOS ---
+    // FUEGOS
     function iniciarFuegos() {
         const cv=document.getElementById("canvasFuegos"), cx=cv.getContext("2d");
         let particles = [];
         function createP() {
-            for(let i=0; i<25; i++) particles.push({x:Math.random()*350, y:Math.random()*150, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, c:`hsl(${Math.random()*360},100%,70%)`});
+            for(let i=0; i<20; i++) particles.push({x:Math.random()*350, y:Math.random()*100, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, c:`hsl(${Math.random()*360},100%,70%)`});
         }
         let interval = setInterval(createP, 1000);
         function loop() {
-            cx.fillStyle="rgba(0,0,20,0.2)"; cx.fillRect(0,0,350,250);
-            particles.forEach((p,i)=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; cx.fillStyle=p.c; cx.fillRect(p.x,p.y,3,3); if(p.y>250) particles.splice(i,1); });
+            cx.fillStyle="rgba(0,0,20,0.2)"; cx.fillRect(0,0,350,200);
+            particles.forEach((p,i)=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; cx.fillStyle=p.c; cx.fillRect(p.x,p.y,3,3); if(p.y>200) particles.splice(i,1); });
             if(document.getElementById('juego7').style.display === 'block') requestAnimationFrame(loop);
             else clearInterval(interval);
         }
         loop();
     }
 
-    function falloColor() { document.getElementById("btnRosa").style.display="inline-block"; }
     function ganarColor() { document.getElementById("opcionesColores").style.display="none"; document.getElementById("secretoColor").style.display="block"; }
     function checkArtista() { 
         let val = document.getElementById("inputArtista").value.toLowerCase();
